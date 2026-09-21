@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Florida Grade 4 Math Practice Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            height: 280px;
+        }
+        .tab-btn.active {
+            border-bottom: 4px solid #0f766e;
+            color: #0f766e;
+            font-weight: 700;
+        }
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-btn:hover:not(:disabled) {
+            border-color: #0f766e;
+            background-color: #f0fdfa;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-stone-200 pt-6 pb-4 px-6 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-stone-900">Florida Grade 4 Math <span class="text-teal-700">Practice Hub</span></h1>
+                <p class="text-stone-600 text-sm">Infinite B.E.S.T. Standards Question Generator & Personal Guide</p>
+            </div>
+            
+            <div class="flex items-center space-x-3 bg-stone-100 px-4 py-2 rounded-lg border border-stone-200 overflow-x-auto">
+                <div class="text-center">
+                    <span class="text-xs uppercase font-bold text-stone-500 block">Score</span>
+                    <span id="stat-score" class="text-lg font-extrabold text-teal-700">0 / 0</span>
+                </div>
+                <div class="h-8 w-px bg-stone-300"></div>
+                <div class="text-center">
+                    <span class="text-xs uppercase font-bold text-stone-500 block">Accuracy</span>
+                    <span id="stat-accuracy" class="text-lg font-extrabold text-orange-600">0%</span>
+                </div>
+                <div class="h-8 w-px bg-stone-300"></div>
+                <div class="text-center">
+                    <span class="text-xs uppercase font-bold text-stone-500 block">Streak</span>
+                    <span id="stat-streak" class="text-lg font-extrabold text-amber-600">0 🔥</span>
+                </div>
+                <div class="h-8 w-px bg-stone-300"></div>
+                <div class="text-center min-w-[60px]">
+                    <span class="text-xs uppercase font-bold text-stone-500 block">Timer</span>
+                    <span id="stat-timer" class="text-lg font-extrabold text-slate-700">--:--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-5xl mx-auto mt-4 border-t border-stone-100 pt-2">
+            <nav class="flex space-x-6">
+                <button onclick="switchTab('arena')" id="tab-arena" class="tab-btn active pb-2 text-stone-600 hover:text-teal-700 font-medium">
+                    ⚒️ Practice Arena
+                </button>
+                <button onclick="switchTab('analytics')" id="tab-analytics" class="tab-btn pb-2 text-stone-600 hover:text-teal-700 font-medium">
+                    📊 Performance
+                </button>
+                <button onclick="switchTab('formulas')" id="tab-formulas" class="tab-btn pb-2 text-stone-600 hover:text-teal-700 font-medium">
+                    📖 B.E.S.T. Reference
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-5xl mx-auto w-full px-4 md:px-6 py-8">
+
+        <section id="section-arena" class="block">
+            <div class="mb-6 bg-white p-4 rounded-xl border border-stone-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <label for="domain-select" class="font-semibold text-stone-700 text-sm">Benchmark Domain:</label>
+                    <select id="domain-select" onchange="generateNewQuestion()" class="bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 text-stone-800 font-medium outline-none text-sm">
+                        <option value="all">All Domains (Mixed Practice)</option>
+                        <option value="nso">Number Sense & Operations (NSO)</option>
+                        <option value="ar">Algebraic Reasoning (AR)</option>
+                        <option value="fr">Fractions & Decimals (FR)</option>
+                        <option value="m">Measurement (M)</option>
+                        <option value="gr">Geometric Reasoning (GR)</option>
+                        <option value="dp">Data Analysis (DP)</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <label for="timer-select" class="font-semibold text-stone-700 text-sm">⏱️ Question Timer:</label>
+                    <select id="timer-select" onchange="generateNewQuestion()" class="bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 text-stone-800 font-medium outline-none text-sm">
+                        <option value="0">Timer Off (Untimed)</option>
+                        <option value="15">15 Seconds</option>
+                        <option value="30">30 Seconds</option>
+                        <option value="60">60 Seconds</option>
+                        <option value="90">90 Seconds</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 md:p-8 rounded-xl border border-stone-200 shadow-md">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-stone-100">
+                    <span id="q-domain-badge" class="bg-teal-100 text-teal-800 font-bold text-xs uppercase px-3 py-1 rounded-full">Number Sense</span>
+                    <span id="q-standard-code" class="text-xs font-mono text-stone-400">MA.4.NSO.1</span>
+                </div>
+
+                <div id="q-text" class="text-lg md:text-xl font-medium text-stone-900 mb-6 leading-relaxed">
+                    Loading question...
+                </div>
+
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
+
+                <div id="explanation-box" class="hidden p-5 rounded-lg border mb-6 text-sm">
+                    <div id="explanation-title" class="font-bold text-base mb-2"></div>
+                    <div id="explanation-body" class="leading-relaxed"></div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button id="next-btn" onclick="generateNewQuestion()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 px-8 rounded-lg shadow-sm">
+                        Next Question &rarr;
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-analytics" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4 text-center">Questions Answered by Domain</h3>
+                    <div class="chart-container">
+                        <canvas id="domainChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-stone-800 mb-4">Session Breakdown</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between border-b border-stone-100 pb-2">
+                                <span class="text-stone-600">Total Attempted:</span>
+                                <span id="stat-total-attempts" class="font-bold text-stone-800">0</span>
+                            </div>
+                            <div class="flex justify-between border-b border-stone-100 pb-2">
+                                <span class="text-stone-600">Correct Answers:</span>
+                                <span id="stat-total-correct" class="font-bold text-teal-700">0</span>
+                            </div>
+                            <div class="flex justify-between border-b border-stone-100 pb-2">
+                                <span class="text-stone-600">Incorrect Answers:</span>
+                                <span id="stat-total-incorrect" class="font-bold text-orange-600">0</span>
+                            </div>
+                            <div class="flex justify-between border-b border-stone-100 pb-2">
+                                <span class="text-stone-600">Best Streak:</span>
+                                <span id="stat-best-streak" class="font-bold text-amber-600">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="resetStats()" class="mt-6 w-full bg-stone-200 hover:bg-stone-300 text-stone-700 font-semibold py-2 px-4 rounded-lg text-sm">
+                        Reset Session Statistics
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-formulas" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-teal-800 border-b border-stone-100 pb-2 mb-3">📏 Measurement Conversions</h3>
+                    <ul class="text-sm space-y-2 text-stone-700">
+                        <li><strong>Length:</strong> 1 foot = 12 inches | 1 yard = 3 feet</li>
+                        <li><strong>Weight:</strong> 1 pound (lb) = 16 ounces (oz)</li>
+                        <li><strong>Capacity:</strong> 1 gallon = 4 quarts | 1 quart = 2 pints</li>
+                        <li><strong>Metric Length:</strong> 1 kilometer = 1,000 meters</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-teal-800 border-b border-stone-100 pb-2 mb-3">📐 Geometry Formulas</h3>
+                    <ul class="text-sm space-y-2 text-stone-700">
+                        <li><strong>Perimeter:</strong> P = (2 × Length) + (2 × Width)</li>
+                        <li><strong>Area:</strong> A = Length × Width</li>
+                        <li><strong>Acute Angle:</strong> Less than 90°</li>
+                        <li><strong>Obtuse Angle:</strong> Greater than 90° and less than 180°</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        let currentQuestion = null;
+        let answered = false;
+        let timerInterval = null;
+        let timeLeft = 0;
+
+        let stats = {
+            attempted: 0,
+            correct: 0,
+            incorrect: 0,
+            streak: 0,
+            bestStreak: 0,
+            domainCounts: { nso: 0, ar: 0, fr: 0, m: 0, gr: 0, dp: 0 }
+        };
+
+        let chartInstance = null;
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffleArray(arr) {
+            let clone = [...arr];
+            return clone.sort(() => Math.random() - 0.5);
+        }
+
+        const questionGenerators = [
+            function genRounding() {
+                const base = getRandomInt(10, 89) * 10000 + getRandomInt(1, 9) * 1000 + getRandomInt(100, 999);
+                const rounded = Math.round(base / 10000) * 10000;
+                return {
+                    domainKey: 'nso', domainName: 'Number Sense', code: 'MA.4.NSO.1.2',
+                    text: `Round <strong>${base.toLocaleString()}</strong> to the nearest ten thousand.`,
+                    options: shuffleArray([
+                        { text: rounded.toLocaleString(), correct: true },
+                        { text: (rounded + 10000).toLocaleString(), correct: false },
+                        { text: Math.max(0, rounded - 10000).toLocaleString(), correct: false },
+                        { text: (Math.round(base / 1000) * 1000).toLocaleString(), correct: false }
+                    ]),
+                    explanation: `Inspect the thousand digit in ${base.toLocaleString()}. Rounding to the nearest ten thousand yields <strong>${rounded.toLocaleString()}</strong>.`
+                };
+            },
+            function genMultiplication() {
+                const a = getRandomInt(15, 65);
+                const b = getRandomInt(12, 45);
+                const correct = a * b;
+                return {
+                    domainKey: 'nso', domainName: 'Number Sense', code: 'MA.4.NSO.2.2',
+                    text: `Find the product: <strong>${a} × ${b}</strong>`,
+                    options: shuffleArray([
+                        { text: `${correct}`, correct: true },
+                        { text: `${correct + 10}`, correct: false },
+                        { text: `${correct - 20}`, correct: false },
+                        { text: `${(a + 2) * b}`, correct: false }
+                    ]),
+                    explanation: `${a} multiplied by ${b} equals <strong>${correct}</strong>.`
+                };
+            },
+            function genPrime() {
+                const primes = [13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
+                const composites = [15, 21, 25, 27, 33, 35, 39, 45, 49];
+                const target = primes[getRandomInt(0, primes.length - 1)];
+                return {
+                    domainKey: 'ar', domainName: 'Algebraic Reasoning', code: 'MA.4.AR.3.1',
+                    text: `Which of the following numbers is a <strong>PRIME number</strong>?`,
+                    options: shuffleArray([
+                        { text: `${target}`, correct: true },
+                        { text: `${composites[0]}`, correct: false },
+                        { text: `${composites[1]}`, correct: false },
+                        { text: `${composites[2]}`, correct: false }
+                    ]),
+                    explanation: `<strong>${target}</strong> is prime because its only factors are 1 and itself.`
+                };
+            },
+            function genFractionAdd() {
+                const n1 = getRandomInt(1, 3), n2 = getRandomInt(1, 3), d = 8;
+                return {
+                    domainKey: 'fr', domainName: 'Fractions & Decimals', code: 'MA.4.FR.2.1',
+                    text: `Solve: <strong>${n1}/${d} + ${n2}/${d}</strong>`,
+                    options: shuffleArray([
+                        { text: `${n1 + n2}/${d}`, correct: true },
+                        { text: `${n1 + n2 + 1}/${d}`, correct: false },
+                        { text: `${n1 + n2}/${d * 2}`, correct: false },
+                        { text: `${n1 + n2 + 2}/${d}`, correct: false }
+                    ]),
+                    explanation: `Add the numerators: ${n1} + ${n2} = ${n1 + n2}. Keep denominator ${d}. Result: <strong>${n1 + n2}/${d}</strong>.`
+                };
+            },
+            function genArea() {
+                const l = getRandomInt(8, 20), w = getRandomInt(4, 12);
+                const area = l * w;
+                return {
+                    domainKey: 'm', domainName: 'Measurement', code: 'MA.4.M.2.1',
+                    text: `A garden is <strong>${l} feet long</strong> and <strong>${w} feet wide</strong>. What is its <strong>AREA</strong>?`,
+                    options: shuffleArray([
+                        { text: `${area} sq ft`, correct: true },
+                        { text: `${2 * (l + w)} sq ft`, correct: false },
+                        { text: `${area + 10} sq ft`, correct: false },
+                        { text: `${l * 2 + w} sq ft`, correct: false }
+                    ]),
+                    explanation: `Area = Length × Width. Calculation: ${l} × ${w} = <strong>${area} sq ft</strong>.`
+                };
+            },
+            function genAngles() {
+                const deg = getRandomInt(15, 165);
+                const isAcute = deg < 90;
+                const isRight = deg === 90;
+                const type = isRight ? 'Right' : (isAcute ? 'Acute' : 'Obtuse');
+                const alt = isAcute ? 'Obtuse' : 'Acute';
+                return {
+                    domainKey: 'gr', domainName: 'Geometric Reasoning', code: 'MA.4.GR.1.1',
+                    text: `An angle measures <strong>${deg}°</strong>. What type of angle is it?`,
+                    options: shuffleArray([
+                        { text: `${type} angle`, correct: true },
+                        { text: `${alt} angle`, correct: false },
+                        { text: `Straight angle`, correct: false },
+                        { text: `Reflex angle`, correct: false }
+                    ]),
+                    explanation: `Angles less than 90° are Acute. Exactly 90° is Right. Greater than 90° is Obtuse. Therefore, ${deg}° is an <strong>${type} angle</strong>.`
+                };
+            },
+            function genDataAnalysis() {
+                const val1 = getRandomInt(2, 5);
+                const val2 = getRandomInt(6, 10);
+                const diff = val2 - val1;
+                return {
+                    domainKey: 'dp', domainName: 'Data Analysis', code: 'MA.4.DP.1.1',
+                    text: `Group A collected <strong>${val1} lbs</strong> of plastic and Group B collected <strong>${val2} lbs</strong>. How many more pounds did Group B collect than Group A?`,
+                    options: shuffleArray([
+                        { text: `${diff} lbs`, correct: true },
+                        { text: `${diff + 2} lbs`, correct: false },
+                        { text: `${val1 + val2} lbs`, correct: false },
+                        { text: `${Math.max(1, diff - 1)} lbs`, correct: false }
+                    ]),
+                    explanation: `Subtract Group A from Group B: ${val2} - ${val1} = <strong>${diff} lbs</strong>.`
+                };
+            }
+        ];
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            const timerSelect = document.getElementById('timer-select');
+            if (!timerSelect) return;
+
+            const timerVal = parseInt(timerSelect.value);
+            const timerDisplay = document.getElementById('stat-timer');
+
+            if (timerVal === 0) {
+                timerDisplay.innerText = "--:--";
+                timerDisplay.className = "text-lg font-extrabold text-slate-700";
+                return;
+            }
+
+            timeLeft = timerVal;
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeOut();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerDisplay = document.getElementById('stat-timer');
+            if (!timerDisplay) return;
+
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerDisplay.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+
+            if (timeLeft <= 5) {
+                timerDisplay.className = "text-lg font-extrabold text-rose-600 animate-pulse";
+            } else if (timeLeft <= 10) {
+                timerDisplay.className = "text-lg font-extrabold text-orange-500";
+            } else {
+                timerDisplay.className = "text-lg font-extrabold text-teal-700";
+            }
+        }
+
+        function handleTimeOut() {
+            if (answered) return;
+            answered = true;
+
+            const domainKey = currentQuestion.domainKey;
+            stats.attempted++;
+            stats.incorrect++;
+            stats.streak = 0;
+            stats.domainCounts[domainKey]++;
+
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach((btn, idx) => {
+                btn.disabled = true;
+                if (currentQuestion.options[idx].correct) {
+                    btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                }
+            });
+
+            const expBox = document.getElementById('explanation-box');
+            document.getElementById('explanation-title').innerHTML = '⏰ Time Expired!';
+            document.getElementById('explanation-body').innerHTML = `Time ran out before you selected an answer. <br><br><strong>Explanation:</strong> ${currentQuestion.explanation}`;
+            expBox.className = 'p-5 rounded-lg border border-orange-200 bg-orange-50 text-orange-900 text-sm mb-6';
+            expBox.classList.remove('hidden');
+
+            updateStatsUI();
+
+            const nextBtn = document.getElementById('next-btn');
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function generateNewQuestion() {
+            answered = false;
+            clearInterval(timerInterval);
+            
+            const expBox = document.getElementById('explanation-box');
+            if (expBox) expBox.classList.add('hidden');
+
+            const nextBtn = document.getElementById('next-btn');
+            if (nextBtn) {
+                nextBtn.disabled = true;
+                nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            const domainFilter = document.getElementById('domain-select').value;
+            let gens = questionGenerators.filter(g => {
+                let sample = g();
+                return domainFilter === 'all' || sample.domainKey === domainFilter;
+            });
+            
+            if (gens.length === 0) gens = questionGenerators;
+
+            currentQuestion = gens[getRandomInt(0, gens.length - 1)]();
+
+            document.getElementById('q-domain-badge').innerText = currentQuestion.domainName;
+            document.getElementById('q-standard-code').innerText = currentQuestion.code;
+            document.getElementById('q-text').innerHTML = currentQuestion.text;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const labels = ['A', 'B', 'C', 'D'];
+            currentQuestion.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left p-4 rounded-lg border-2 border-stone-200 bg-white hover:border-teal-600 font-medium text-stone-800 flex items-center shadow-sm';
+                btn.innerHTML = `<span class="bg-stone-100 text-stone-600 font-bold rounded-md px-2 py-1 mr-3 text-sm">${labels[idx]}</span> <span>${opt.text}</span>`;
+                btn.onclick = () => checkAnswer(idx, btn);
+                container.appendChild(btn);
+            });
+
+            startTimer();
+        }
+
+        function checkAnswer(selectedIndex, selectedBtn) {
+            if (answered) return;
+            answered = true;
+            clearInterval(timerInterval);
+
+            const isCorrect = currentQuestion.options[selectedIndex].correct;
+            const domainKey = currentQuestion.domainKey;
+
+            stats.attempted++;
+            stats.domainCounts[domainKey]++;
+
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(btn => btn.disabled = true);
+
+            const expBox = document.getElementById('explanation-box');
+            const expTitle = document.getElementById('explanation-title');
+            const expBody = document.getElementById('explanation-body');
+
+            if (isCorrect) {
+                stats.correct++;
+                stats.streak++;
+                if (stats.streak > stats.bestStreak) stats.bestStreak = stats.streak;
+                selectedBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                expBox.className = 'p-5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 text-sm mb-6';
+                expTitle.innerHTML = '✔️ Correct!';
+            } else {
+                stats.incorrect++;
+                stats.streak = 0;
+                selectedBtn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+                currentQuestion.options.forEach((opt, idx) => {
+                    if (opt.correct) allBtns[idx].classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                });
+                expBox.className = 'p-5 rounded-lg border border-rose-200 bg-rose-50 text-rose-900 text-sm mb-6';
+                expTitle.innerHTML = '❌ Incorrect';
+            }
+
+            expBody.innerHTML = currentQuestion.explanation;
+            expBox.classList.remove('hidden');
+
+            updateStatsUI();
+
+            const nextBtn = document.getElementById('next-btn');
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function updateStatsUI() {
+            document.getElementById('stat-score').innerText = `${stats.correct} / ${stats.attempted}`;
+            const acc = stats.attempted > 0 ? Math.round((stats.correct / stats.attempted) * 100) : 0;
+            document.getElementById('stat-accuracy').innerText = `${acc}%`;
+            document.getElementById('stat-streak').innerText = `${stats.streak} 🔥`;
+
+            document.getElementById('stat-total-attempts').innerText = stats.attempted;
+            document.getElementById('stat-total-correct').innerText = stats.correct;
+            document.getElementById('stat-total-incorrect').innerText = stats.incorrect;
+            document.getElementById('stat-best-streak').innerText = stats.bestStreak;
+
+            if (chartInstance) {
+                chartInstance.data.datasets[0].data = Object.values(stats.domainCounts);
+                chartInstance.update();
+            }
+        }
+
+        function resetStats() {
+            stats = { attempted: 0, correct: 0, incorrect: 0, streak: 0, bestStreak: 0, domainCounts: { nso: 0, ar: 0, fr: 0, m: 0, gr: 0, dp: 0 } };
+            updateStatsUI();
+            generateNewQuestion();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+
+            ['arena', 'analytics', 'formulas'].forEach(id => {
+                document.getElementById(`section-${id}`).classList.toggle('hidden', id !== tabId);
+            });
+
+            if (tabId === 'analytics' && chartInstance) chartInstance.update();
+        }
+
+        function initChart() {
+            try {
+                if (typeof Chart === 'undefined') return;
+                const canvas = document.getElementById('domainChart');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['NSO', 'AR', 'FR', 'M', 'GR', 'DP'],
+                        datasets: [{ label: 'Attempted', data: [0, 0, 0, 0, 0, 0], backgroundColor: '#0f766e', borderRadius: 4 }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            } catch (e) {
+                console.log('Chart initialization skipped or failed:', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateNewQuestion();
+            initChart();
+        });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log('Service Worker Registered!'))
+            .catch((err) => console.log('Service Worker Failed:', err));
+        }
+      </script>
+</body>
+</html>
