@@ -198,6 +198,63 @@
     </main>
 
     <script>
+        // Web Audio API Context
+let audioCtx = null;
+
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+// Play a cheerful high-pitched double chime for correct answers
+function playCorrectSound() {
+    initAudio();
+    const now = audioCtx.currentTime;
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    
+    // Quick two-tone chord (C5 to E5)
+    osc.frequency.setValueAtTime(523.25, now); 
+    osc.frequency.setValueAtTime(659.25, now + 0.1); 
+    
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start(now);
+    osc.stop(now + 0.3);
+}
+
+// Play a low buzzing tone for incorrect answers or timeouts
+function playIncorrectSound() {
+    initAudio();
+    const now = audioCtx.currentTime;
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    
+    // Dropping tone (A3 down to A2)
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.exponentialRampToValueAtTime(110, now + 0.25);
+    
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start(now);
+    osc.stop(now + 0.3);
+}
         let currentQuestion = null;
         let answered = false;
         let timerInterval = null;
