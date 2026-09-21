@@ -441,6 +441,7 @@ function playIncorrectSound() {
         function handleTimeOut() {
             if (answered) return;
             answered = true;
+            playIncorrectSound(); // <-- Trigger sound when time runs out
 
             const domainKey = currentQuestion.domainKey;
             stats.attempted++;
@@ -532,6 +533,7 @@ function playIncorrectSound() {
             const expBody = document.getElementById('explanation-body');
 
             if (isCorrect) {
+                playCorrectSound(); // <-- Trigger correct sound chime
                 stats.correct++;
                 stats.streak++;
                 if (stats.streak > stats.bestStreak) stats.bestStreak = stats.streak;
@@ -539,6 +541,7 @@ function playIncorrectSound() {
                 expBox.className = 'p-5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 text-sm mb-6';
                 expTitle.innerHTML = '✔️ Correct!';
             } else {
+                playIncorrectSound(); // <-- Trigger incorrect sound buzz
                 stats.incorrect++;
                 stats.streak = 0;
                 selectedBtn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
