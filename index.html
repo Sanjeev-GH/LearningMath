@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Practice Hub </title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
@@ -518,56 +519,71 @@ function playIncorrectSound() {
     document.getElementById('explanation-box').classList.add('hidden');
     startTimer();
 }
-        function checkAnswer(selectedIndex, selectedBtn) {
-            if (answered) return;
-            answered = true;
-            clearInterval(timerInterval);
+       function checkAnswer(selectedIndex, selectedBtn) {
+    if (answered) return;
+    answered = true;
+    clearInterval(timerInterval);
 
-            const isCorrect = currentQuestion.options[selectedIndex].correct;
-            const domainKey = currentQuestion.domainKey;
+    const isCorrect = currentQuestion.options[selectedIndex].correct;
+    const domainKey = currentQuestion.domainKey;
 
-            stats.attempted++;
-            stats.domainCounts[domainKey]++;
+    stats.attempted++;
+    stats.domainCounts[domainKey]++;
 
-            const allBtns = document.querySelectorAll('.option-btn');
-            allBtns.forEach(btn => btn.disabled = true);
+    const allBtns = document.querySelectorAll('.option-btn');
+    allBtns.forEach(btn => btn.disabled = true);
 
-            const expBox = document.getElementById('explanation-box');
-            const expTitle = document.getElementById('explanation-title');
-            const expBody = document.getElementById('explanation-body');
+    const expBox = document.getElementById('explanation-box');
+    const expTitle = document.getElementById('explanation-title');
+    const expBody = document.getElementById('explanation-body');
 
-            if (isCorrect) {
-                playCorrectSound(); // <-- Trigger correct sound chime
-                stats.correct++;
-                stats.streak++;
-                if (stats.streak > stats.bestStreak) stats.bestStreak = stats.streak;
-                selectedBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
-                expBox.className = 'p-5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 text-sm mb-6';
-                expTitle.innerHTML = '✔️ Correct!';
-            } else {
-                playIncorrectSound(); // <-- Trigger incorrect sound buzz
-                stats.incorrect++;
-                stats.streak = 0;
-                selectedBtn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
-                currentQuestion.options.forEach((opt, idx) => {
-                    if (opt.correct) allBtns[idx].classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
-                });
-                expBox.className = 'p-5 rounded-lg border border-rose-200 bg-rose-50 text-rose-900 text-sm mb-6';
-                expTitle.innerHTML = '❌ Incorrect';
-            }
+    if (isCorrect) {
+        playCorrectSound();
+        stats.correct++;
+        stats.streak++;
+        if (stats.streak > stats.bestStreak) stats.bestStreak = stats.streak;
 
-            expBody.innerHTML = currentQuestion.explanation;
-            expBox.classList.remove('hidden');
-
-            updateStatsUI();
-
-            const nextBtn = document.getElementById('next-btn');
-            if (nextBtn) {
-                nextBtn.disabled = false;
-                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
+        // Trigger Confetti every 5 streak milestone (5, 10, 15...)
+        if (stats.streak % 5 === 0 && stats.streak > 0) {
+            confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 }
+            });
         }
 
+        selectedBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+        expBox.className = 'p-5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 text-sm mb-6';
+        
+        // Add milestone badge to title on 5-streaks
+        if (stats.streak % 5 === 0 && stats.streak > 0) {
+            expTitle.innerHTML = `🎉 Amazing! ${stats.streak} in a row! 🎉`;
+        } else {
+            expTitle.innerHTML = '✔️ Correct!';
+        }
+    } else {
+        playIncorrectSound();
+        stats.incorrect++;
+        stats.streak = 0;
+        selectedBtn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+        currentQuestion.options.forEach((opt, idx) => {
+            if (opt.correct) allBtns[idx].classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+        });
+        expBox.className = 'p-5 rounded-lg border border-rose-200 bg-rose-50 text-rose-900 text-sm mb-6';
+        expTitle.innerHTML = '❌ Incorrect';
+    }
+
+    expBody.innerHTML = currentQuestion.explanation;
+    expBox.classList.remove('hidden');
+
+    updateStatsUI();
+
+    const nextBtn = document.getElementById('next-btn');
+    if (nextBtn) {
+        nextBtn.disabled = false;
+        nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+}
         function updateStatsUI() {
             document.getElementById('stat-score').innerText = `${stats.correct} / ${stats.attempted}`;
             const acc = stats.attempted > 0 ? Math.round((stats.correct / stats.attempted) * 100) : 0;
