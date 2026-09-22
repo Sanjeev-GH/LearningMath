@@ -5,7 +5,7 @@
     <link rel="apple-touch-icon" href="icon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Practice Hub </title>
+    <title>Math Practice Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -126,7 +126,7 @@
                 </div>
 
                 <div class="flex justify-end">
-                    <button id="next-btn" onclick="generateNewQuestion()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 px-8 rounded-lg shadow-sm">
+                    <button id="next-btn" disabled onclick="generateNewQuestion()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 px-8 rounded-lg shadow-sm opacity-50 cursor-not-allowed">
                         Next Question &rarr;
                     </button>
                 </div>
@@ -199,89 +199,82 @@
     </main>
 
     <script>
-        // Web Audio API Context
-let audioCtx = null;
+        let audioCtx = null;
 
-function initAudio() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
-}
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
 
-// Play a cheerful high-pitched double chime for correct answers
-function playCorrectSound() {
-    initAudio();
-    const now = audioCtx.currentTime;
-    
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    
-    // Quick two-tone chord (C5 to E5)
-    osc.frequency.setValueAtTime(523.25, now); 
-    osc.frequency.setValueAtTime(659.25, now + 0.1); 
-    
-    gain.gain.setValueAtTime(0.15, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-    
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    
-    osc.start(now);
-    osc.stop(now + 0.3);
-}
+        function playCorrectSound() {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            
+            osc.frequency.setValueAtTime(523.25, now); 
+            osc.frequency.setValueAtTime(659.25, now + 0.1); 
+            
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start(now);
+            osc.stop(now + 0.3);
+        }
 
-// Play a low buzzing tone for incorrect answers or timeouts
-function playIncorrectSound() {
-    initAudio();
-    const now = audioCtx.currentTime;
-    
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sawtooth';
-    
-    // Dropping tone (A3 down to A2)
-    osc.frequency.setValueAtTime(220, now);
-    osc.frequency.exponentialRampToValueAtTime(110, now + 0.25);
-    
-    gain.gain.setValueAtTime(0.15, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-    
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    
-    osc.start(now);
-    osc.stop(now + 0.3);
-}
+        function playIncorrectSound() {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            
+            osc.frequency.setValueAtTime(220, now);
+            osc.frequency.exponentialRampToValueAtTime(110, now + 0.25);
+            
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start(now);
+            osc.stop(now + 0.3);
+        }
+
         function playCheerSound() {
-    initAudio();
-    const now = audioCtx.currentTime;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            const startTimes = [0, 0.1, 0.2, 0.35];
+            const durations = [0.1, 0.1, 0.15, 0.6];
 
-    // Triumphant note progression: C5 -> E5 -> G5 -> C6
-    const notes = [523.25, 659.25, 783.99, 1046.50];
-    const startTimes = [0, 0.1, 0.2, 0.35];
-    const durations = [0.1, 0.1, 0.15, 0.6];
+            notes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
 
-    notes.forEach((freq, i) => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + startTimes[i]);
 
-        osc.type = 'triangle'; // Gives a warm, trumpet-like tone
-        osc.frequency.setValueAtTime(freq, now + startTimes[i]);
+                gain.gain.setValueAtTime(0.2, now + startTimes[i]);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + startTimes[i] + durations[i]);
 
-        gain.gain.setValueAtTime(0.2, now + startTimes[i]);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + startTimes[i] + durations[i]);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
 
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
+                osc.start(now + startTimes[i]);
+                osc.stop(now + startTimes[i] + durations[i]);
+            });
+        }
 
-        osc.start(now + startTimes[i]);
-        osc.stop(now + startTimes[i] + durations[i]);
-    });
-}
         let currentQuestion = null;
         let answered = false;
         let timerInterval = null;
@@ -298,127 +291,105 @@ function playIncorrectSound() {
 
         let chartInstance = null;
 
-        function getRandomInt(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
-        function shuffleArray(arr) {
-            let clone = [...arr];
-            return clone.sort(() => Math.random() - 0.5);
-        }
-
         const questionGenerators = [
-  // 1. Pre-Algebra: Solving for X in 2-step equations
-  function generateAlgebra() {
-    const x = Math.floor(Math.random() * 12) + 2;
-    const a = Math.floor(Math.random() * 8) + 2;
-    const b = Math.floor(Math.random() * 20) + 5;
-    const total = a * x + b;
-    
-    return {
-      domainKey: 'ar',
-      question: `Solve for x: <br><strong class="text-xl text-teal-800">${a}x + ${b} = ${total}</strong>`,
-      options: [
-        { text: `x = ${x}`, correct: true },
-        { text: `x = ${x + 2}`, correct: false },
-        { text: `x = ${Math.max(1, x - 1)}`, correct: false },
-        { text: `x = ${a + b}`, correct: false }
-      ],
-      explanation: `1. Subtract ${b} from both sides: ${a}x = ${total - b}<br>2. Divide both sides by ${a}: x = ${x}`
-    };
-  },
+            function generateAlgebra() {
+                const x = Math.floor(Math.random() * 12) + 2;
+                const a = Math.floor(Math.random() * 8) + 2;
+                const b = Math.floor(Math.random() * 20) + 5;
+                const total = a * x + b;
+                
+                return {
+                    domainKey: 'ar',
+                    question: `Solve for x: <br><strong class="text-xl text-teal-800">${a}x + ${b} = ${total}</strong>`,
+                    options: [
+                        { text: `x = ${x}`, correct: true },
+                        { text: `x = ${x + 2}`, correct: false },
+                        { text: `x = ${Math.max(1, x - 1)}`, correct: false },
+                        { text: `x = ${a + b}`, correct: false }
+                    ],
+                    explanation: `1. Subtract ${b} from both sides: ${a}x = ${total - b}<br>2. Divide both sides by ${a}: x = ${x}`
+                };
+            },
+            function generatePEMDAS() {
+                const a = Math.floor(Math.random() * 5) + 2;
+                const b = Math.floor(Math.random() * 6) + 3;
+                const c = Math.floor(Math.random() * 4) + 2;
+                const mult = Math.floor(Math.random() * 3) + 2;
+                
+                const part1 = Math.pow(a, 2);
+                const part2 = b - c;
+                const correctAns = part1 + (part2 * mult);
+                
+                return {
+                    domainKey: 'nso',
+                    question: `Evaluate the expression:<br><strong class="text-xl text-teal-800">${a}² + (${b} - ${c}) × ${mult}</strong>`,
+                    options: [
+                        { text: `${correctAns}`, correct: true },
+                        { text: `${part1 + part2 * mult + 4}`, correct: false },
+                        { text: `${(part1 + part2) * mult}`, correct: false },
+                        { text: `${a * 2 + part2 * mult}`, correct: false }
+                    ],
+                    explanation: `1. Parentheses first: (${b} - ${c}) = ${part2}<br>2. Exponent: ${a}² = ${part1}<br>3. Multiply: ${part2} × ${mult} = ${part2 * mult}<br>4. Add: ${part1} + ${part2 * mult} = ${correctAns}`
+                };
+            },
+            function generateGeometryReverse() {
+                const width = Math.floor(Math.random() * 10) + 4;
+                const height = Math.floor(Math.random() * 8) + 3;
+                const area = width * height;
+                const perimeter = 2 * (width + height);
 
-  // 2. Order of Operations (PEMDAS) with parentheses & exponents
-  function generatePEMDAS() {
-    const a = Math.floor(Math.random() * 5) + 2;
-    const b = Math.floor(Math.random() * 6) + 3;
-    const c = Math.floor(Math.random() * 4) + 2;
-    const mult = Math.floor(Math.random() * 3) + 2;
-    
-    // Expression: a^2 + (b - c) * mult
-    const part1 = Math.pow(a, 2);
-    const part2 = b - c;
-    const correctAns = part1 + (part2 * mult);
-    
-    return {
-      domainKey: 'nso',
-      question: `Evaluate the expression:<br><strong class="text-xl text-teal-800">${a}² + (${b} - ${c}) × ${mult}</strong>`,
-      options: [
-        { text: `${correctAns}`, correct: true },
-        { text: `${part1 + part2 * mult + 4}`, correct: false },
-        { text: `${(part1 + part2) * mult}`, correct: false }, // Common mistake: adding before multiplying
-        { text: `${a * 2 + part2 * mult}`, correct: false }
-      ],
-      explanation: `1. Parentheses first: (${b} - ${c}) = ${part2}<br>2. Exponent: ${a}² = ${part1}<br>3. Multiply: ${part2} × ${mult} = ${part2 * mult}<br>4. Add: ${part1} + ${part2 * mult} = ${correctAns}`
-    };
-  },
+                return {
+                    domainKey: 'gr',
+                    question: `A rectangle has an area of <strong>${area} sq cm</strong> and a height of <strong>${height} cm</strong>. What is its <strong>perimeter</strong>?`,
+                    options: [
+                        { text: `${perimeter} cm`, correct: true },
+                        { text: `${width} cm`, correct: false },
+                        { text: `${width + height} cm`, correct: false },
+                        { text: `${perimeter + 6} cm`, correct: false }
+                    ],
+                    explanation: `1. Find missing width: Area ÷ Height = ${area} ÷ ${height} = ${width} cm.<br>2. Calculate perimeter: 2 × (${width} + ${height}) = ${perimeter} cm.`
+                };
+            },
+            function generateFractionMult() {
+                const num1 = Math.floor(Math.random() * 5) + 1;
+                const den = 4;
+                const resultNum = 4 + num1;
+                const product = (resultNum * 2) / den;
 
-  // 3. Multi-Step Geometry: Working backwards from Area/Perimeter
-  function generateGeometryReverse() {
-    const width = Math.floor(Math.random() * 10) + 4;
-    const height = Math.floor(Math.random() * 8) + 3;
-    const area = width * height;
-    const perimeter = 2 * (width + height);
+                return {
+                    domainKey: 'fr',
+                    question: `Multiply: <strong class="text-xl text-teal-800">1 ${num1}/4 × 2</strong>`,
+                    options: [
+                        { text: `${product}`, correct: true },
+                        { text: `${product + 1.5}`, correct: false },
+                        { text: `${1 + (num1/4)*2}`, correct: false },
+                        { text: `${product - 0.5}`, correct: false }
+                    ],
+                    explanation: `Convert 1 ${num1}/4 to an improper fraction: ${resultNum}/4.<br>Multiply by 2: (${resultNum} × 2) / 4 = ${resultNum * 2}/4 = ${product}.`
+                };
+            },
+            function generateUnitRate() {
+                const pack1Qty = 4;
+                const pack1Price = Math.floor(Math.random() * 4) * 4 + 12;
+                const unit1 = pack1Price / pack1Qty;
+                const unit2 = unit1 - 1;
+                const pack2Qty = 6;
+                const pack2Price = unit2 * pack2Qty;
 
-    return {
-      domainKey: 'gr',
-      question: `A rectangle has an area of <strong>${area} sq cm</strong> and a height of <strong>${height} cm</strong>. What is its <strong>perimeter</strong>?`,
-      options: [
-        { text: `${perimeter} cm`, correct: true },
-        { text: `${width} cm`, correct: false },
-        { text: `${width + height} cm`, correct: false },
-        { text: `${perimeter + 6} cm`, correct: false }
-      ],
-      explanation: `1. Find missing width: Area ÷ Height = ${area} ÷ ${height} = ${width} cm.<br>2. Calculate perimeter: 2 × (${width} + ${height}) = ${perimeter} cm.`
-    };
-  },
+                return {
+                    domainKey: 'dp',
+                    question: `Store A sells <strong>${pack1Qty} notebooks for $${pack1Price}</strong>. Store B sells <strong>${pack2Qty} notebooks for $${pack2Price}</strong>. Which store is cheaper per notebook, and by how much?`,
+                    options: [
+                        { text: `Store B, by $1.00 cheaper per item`, correct: true },
+                        { text: `Store A, by $1.00 cheaper per item`, correct: false },
+                        { text: `Both stores cost the same`, correct: false },
+                        { text: `Store B, by $2.00 cheaper per item`, correct: false }
+                    ],
+                    explanation: `Store A unit price: $${pack1Price} ÷ ${pack1Qty} = $${unit1}/item.<br>Store B unit price: $${pack2Price} ÷ ${pack2Qty} = $${unit2}/item.<br>Store B is cheaper by $${unit1 - unit2}.00 per notebook.`
+                };
+            }
+        ];
 
-  // 4. Fractions & Decimals: Multiplying Mixed Numbers
-  function generateFractionMult() {
-    const num1 = Math.floor(Math.random() * 5) + 1;
-    const num2 = Math.floor(Math.random() * 5) + 1;
-    const den = 4;
-    
-    // (1 + num1/4) * 2 = 2 + num1/2
-    const resultNum = 4 + num1;
-    const product = (resultNum * 2) / den;
-
-    return {
-      domainKey: 'fr',
-      question: `Multiply: <strong class="text-xl text-teal-800">1 ${num1}/4 × 2</strong>`,
-      options: [
-        { text: `${product}`, correct: true },
-        { text: `${product + 1.5}`, correct: false },
-        { text: `${1 + (num1/4)*2}`, correct: false },
-        { text: `${product - 0.5}`, correct: false }
-      ],
-      explanation: `Convert 1 ${num1}/4 to an improper fraction: ${resultNum}/4.<br>Multiply by 2: (${resultNum} × 2) / 4 = ${resultNum * 2}/4 = ${product}.`
-    };
-  },
-
-  // 5. Logic & Data: Rates / Unit Price comparisons
-  function generateUnitRate() {
-    const pack1Qty = 4;
-    const pack1Price = Math.floor(Math.random() * 4) * 4 + 12; // e.g. 12, 16, 20
-    const unit1 = pack1Price / pack1Qty;
-    
-    const unit2 = unit1 - 1; // Pack 2 is cheaper per item
-    const pack2Qty = 6;
-    const pack2Price = unit2 * pack2Qty;
-
-    return {
-      domainKey: 'dp',
-      question: `Store A sells <strong>${pack1Qty} notebooks for $${pack1Price}</strong>. Store B sells <strong>${pack2Qty} notebooks for $${pack2Price}</strong>. Which store is cheaper per notebook, and by how much?`,
-      options: [
-        { text: `Store B, by $1.00 cheaper per item`, correct: true },
-        { text: `Store A, by $1.00 cheaper per item`, correct: false },
-        { text: `Both stores cost the same`, correct: false },
-        { text: `Store B, by $2.00 cheaper per item`, correct: false }
-      ],
-      explanation: `Store A unit price: $${pack1Price} ÷ ${pack1Qty} = $${unit1}/item.<br>Store B unit price: $${pack2Price} ÷ ${pack2Qty} = $${unit2}/item.<br>Store B is cheaper by $${unit1 - unit2}.00 per notebook.`
-    };
-  }
-];
         function startTimer() {
             clearInterval(timerInterval);
             const timerSelect = document.getElementById('timer-select');
@@ -467,7 +438,7 @@ function playIncorrectSound() {
         function handleTimeOut() {
             if (answered) return;
             answered = true;
-            playIncorrectSound(); // <-- Trigger sound when time runs out
+            playIncorrectSound();
 
             const domainKey = currentQuestion.domainKey;
             stats.attempted++;
@@ -491,136 +462,128 @@ function playIncorrectSound() {
 
             updateStatsUI();
 
+            const nextBtn = document.getElementById('next-btn');
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
+        }
+
+        function generateNewQuestion() {
+            answered = false;
             
+            const selectedDomain = document.getElementById('domain-select').value;
+            let filteredGenerators = questionGenerators;
+            
+            if (selectedDomain !== 'all') {
+                filteredGenerators = questionGenerators.filter(g => g().domainKey === selectedDomain);
+                if (filteredGenerators.length === 0) filteredGenerators = questionGenerators;
+            }
+
+            const randomIndex = Math.floor(Math.random() * filteredGenerators.length);
+            currentQuestion = filteredGenerators[randomIndex](); 
+
+            document.getElementById('q-text').innerHTML = currentQuestion.question;
+
+            const domainNames = {
+                ar: 'Algebraic Reasoning',
+                nso: 'Number Sense & Operations',
+                gr: 'Geometric Reasoning',
+                fr: 'Fractions & Decimals',
+                dp: 'Data Analysis & Probability',
+                m: 'Measurement'
+            };
+            
+            document.getElementById('q-domain-badge').innerText = domainNames[currentQuestion.domainKey] || 'General Math';
+            document.getElementById('q-standard-code').innerText = `ADV.${currentQuestion.domainKey.toUpperCase()}.4`;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            currentQuestion.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left p-4 rounded-xl border-2 border-stone-200 hover:border-teal-500 font-medium transition-all';
+                btn.innerHTML = opt.text;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('explanation-box').classList.add('hidden');
+
+            const nextBtn = document.getElementById('next-btn');
+            if (nextBtn) {
+                nextBtn.disabled = true;
+                nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            startTimer();
         }
 
-      function generateNewQuestion() {
-    answered = false;
-    
-    // 1. Select and execute a random generator function
-    const selectedDomain = document.getElementById('domain-select').value;
-    let filteredGenerators = questionGenerators;
-    
-    if (selectedDomain !== 'all') {
-        filteredGenerators = questionGenerators.filter(g => g().domainKey === selectedDomain);
-        if (filteredGenerators.length === 0) filteredGenerators = questionGenerators;
-    }
-
-    const randomIndex = Math.floor(Math.random() * filteredGenerators.length);
-    currentQuestion = filteredGenerators[randomIndex](); 
-
-    // 2. Render Question Text (Fixed ID: 'q-text')
-    document.getElementById('q-text').innerHTML = currentQuestion.question;
-
-    // 3. Update Domain Badge & Standard Code
-    const domainNames = {
-        ar: 'Algebraic Reasoning',
-        nso: 'Number Sense & Operations',
-        gr: 'Geometric Reasoning',
-        fr: 'Fractions & Decimals',
-        dp: 'Data Analysis & Probability',
-        m: 'Measurement'
-    };
-    
-    document.getElementById('q-domain-badge').innerText = domainNames[currentQuestion.domainKey] || 'General Math';
-    document.getElementById('q-standard-code').innerText = `ADV.${currentQuestion.domainKey.toUpperCase()}.4`;
-
-    // 4. Render Options
-    const optionsContainer = document.getElementById('options-container');
-    optionsContainer.innerHTML = '';
-
-    currentQuestion.options.forEach((opt, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn w-full text-left p-4 rounded-xl border-2 border-stone-200 hover:border-teal-500 font-medium transition-all';
-        btn.innerHTML = opt.text;
-        btn.onclick = () => checkAnswer(index, btn);
-        optionsContainer.appendChild(btn);
-    });
-
-    // 5. Reset UI State & Timer
-    document.getElementById('explanation-box').classList.add('hidden');
-          // 🔒 Disable Next Question button until answered
-    const nextBtn = document.getElementById('next-btn');
-    if (nextBtn) {
-        nextBtn.disabled = true;
-        nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
-    }
-    startTimer();
-}
         function checkAnswer(selectedIndex, selectedBtn) {
-    if (answered) return;
-    answered = true;
-    clearInterval(timerInterval);
+            if (answered) return;
+            answered = true;
+            clearInterval(timerInterval);
 
-    const isCorrect = currentQuestion.options[selectedIndex].correct;
-    const domainKey = currentQuestion.domainKey;
+            const isCorrect = currentQuestion.options[selectedIndex].correct;
+            const domainKey = currentQuestion.domainKey;
 
-    stats.attempted++;
-    stats.domainCounts[domainKey]++;
+            stats.attempted++;
+            stats.domainCounts[domainKey]++;
 
-    const allBtns = document.querySelectorAll('.option-btn');
-    allBtns.forEach(btn => btn.disabled = true);
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(btn => btn.disabled = true);
 
-    const expBox = document.getElementById('explanation-box');
-    const expTitle = document.getElementById('explanation-title');
-    const expBody = document.getElementById('explanation-body');
+            const expBox = document.getElementById('explanation-box');
+            const expTitle = document.getElementById('explanation-title');
+            const expBody = document.getElementById('explanation-body');
 
-    if (isCorrect) {
-        playCorrectSound();
-        stats.correct++;
-        stats.streak++;
-        if (stats.streak > stats.bestStreak) stats.bestStreak = stats.streak;
+            if (isCorrect) {
+                playCorrectSound();
+                stats.correct++;
+                stats.streak++;
+                if (stats.streak > stats.bestStreak) stats.bestStreak = stats.streak;
 
-       // Trigger Confetti and Fanfare every 5 streak milestone (5, 10, 15...)
-if (stats.streak % 5 === 0 && stats.streak > 0) {
-    playCheerSound(); // <-- Plays cheer sound here
-    
-    confetti({
-        particleCount: 120,
-        spread: 80,
-        origin: { y: 0.6 }
-    });
-}
+                if (stats.streak % 5 === 0 && stats.streak > 0) {
+                    playCheerSound();
+                    confetti({
+                        particleCount: 120,
+                        spread: 80,
+                        origin: { y: 0.6 }
+                    });
+                }
 
-        selectedBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
-        expBox.className = 'p-5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 text-sm mb-6';
-        
-        // Add milestone badge to title on 5-streaks
-        if (stats.streak % 5 === 0 && stats.streak > 0) {
-            expTitle.innerHTML = `🎉 Amazing! ${stats.streak} in a row! 🎉`;
-        } else {
-            expTitle.innerHTML = '✔️ Correct!';
+                selectedBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                expBox.className = 'p-5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 text-sm mb-6';
+                
+                if (stats.streak % 5 === 0 && stats.streak > 0) {
+                    expTitle.innerHTML = `🎉 Amazing! ${stats.streak} in a row! 🎉`;
+                } else {
+                    expTitle.innerHTML = '✔️ Correct!';
+                }
+            } else {
+                playIncorrectSound();
+                stats.incorrect++;
+                stats.streak = 0;
+                selectedBtn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+                currentQuestion.options.forEach((opt, idx) => {
+                    if (opt.correct) allBtns[idx].classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                });
+                expBox.className = 'p-5 rounded-lg border border-rose-200 bg-rose-50 text-rose-900 text-sm mb-6';
+                expTitle.innerHTML = '❌ Incorrect';
+            }
+
+            expBody.innerHTML = currentQuestion.explanation;
+            expBox.classList.remove('hidden');
+
+            updateStatsUI();
+
+            const nextBtn = document.getElementById('next-btn');
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
         }
-    } else {
-        playIncorrectSound();
-        stats.incorrect++;
-        stats.streak = 0;
-        selectedBtn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
-        currentQuestion.options.forEach((opt, idx) => {
-            if (opt.correct) allBtns[idx].classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
-        });
-        expBox.className = 'p-5 rounded-lg border border-rose-200 bg-rose-50 text-rose-900 text-sm mb-6';
-        expTitle.innerHTML = '❌ Incorrect';
-    }
 
-    expBody.innerHTML = currentQuestion.explanation;
-    expBox.classList.remove('hidden');
-
-    updateStatsUI();
-
-    const nextBtn = document.getElementById('next-btn');
-    if (nextBtn) {
-        nextBtn.disabled = false;
-        nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-    }
-           // At the bottom of both checkAnswer() AND handleTimeOut():
-const nextBtn = document.getElementById('next-btn');
-if (nextBtn) {
-    nextBtn.disabled = false;
-    nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-    }
-}
         function updateStatsUI() {
             document.getElementById('stat-score').innerText = `${stats.correct} / ${stats.attempted}`;
             const acc = stats.attempted > 0 ? Math.round((stats.correct / stats.attempted) * 100) : 0;
@@ -674,7 +637,7 @@ if (nextBtn) {
                     }
                 });
             } catch (e) {
-                console.log('Chart initialization skipped or failed:', e);
+                console.log('Chart initialization skipped:', e);
             }
         }
 
@@ -685,10 +648,10 @@ if (nextBtn) {
     </script>
     <script>
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('./sw.js')
-            .then(() => console.log('Service Worker Registered!'))
-            .catch((err) => console.log('Service Worker Failed:', err));
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('Service Worker Registered!'))
+                .catch((err) => console.log('Service Worker Failed:', err));
         }
-      </script>
+    </script>
 </body>
 </html>
