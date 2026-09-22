@@ -471,17 +471,38 @@ function playIncorrectSound() {
             }
         }
 
-       function generateNewQuestion() {
+      function generateNewQuestion() {
     answered = false;
     
-    // Select and execute a random generator function
-    const randomIndex = Math.floor(Math.random() * questionGenerators.length);
-    currentQuestion = questionGenerators[randomIndex](); 
+    // 1. Select and execute a random generator function
+    const selectedDomain = document.getElementById('domain-select').value;
+    let filteredGenerators = questionGenerators;
+    
+    if (selectedDomain !== 'all') {
+        filteredGenerators = questionGenerators.filter(g => g().domainKey === selectedDomain);
+        if (filteredGenerators.length === 0) filteredGenerators = questionGenerators;
+    }
 
-    // Render Question Text
-    document.getElementById('question-text').innerHTML = currentQuestion.question;
+    const randomIndex = Math.floor(Math.random() * filteredGenerators.length);
+    currentQuestion = filteredGenerators[randomIndex](); 
 
-    // Render Options
+    // 2. Render Question Text (Fixed ID: 'q-text')
+    document.getElementById('q-text').innerHTML = currentQuestion.question;
+
+    // 3. Update Domain Badge & Standard Code
+    const domainNames = {
+        ar: 'Algebraic Reasoning',
+        nso: 'Number Sense & Operations',
+        gr: 'Geometric Reasoning',
+        fr: 'Fractions & Decimals',
+        dp: 'Data Analysis & Probability',
+        m: 'Measurement'
+    };
+    
+    document.getElementById('q-domain-badge').innerText = domainNames[currentQuestion.domainKey] || 'General Math';
+    document.getElementById('q-standard-code').innerText = `ADV.${currentQuestion.domainKey.toUpperCase()}.4`;
+
+    // 4. Render Options
     const optionsContainer = document.getElementById('options-container');
     optionsContainer.innerHTML = '';
 
@@ -493,7 +514,7 @@ function playIncorrectSound() {
         optionsContainer.appendChild(btn);
     });
 
-    // Hide Explanation Box & Reset Timer
+    // 5. Reset UI State & Timer
     document.getElementById('explanation-box').classList.add('hidden');
     startTimer();
 }
