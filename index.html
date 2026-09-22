@@ -496,6 +496,7 @@ function playIncorrectSound() {
                 nextBtn.disabled = false;
                 nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
+            
         }
 
       function generateNewQuestion() {
@@ -543,9 +544,15 @@ function playIncorrectSound() {
 
     // 5. Reset UI State & Timer
     document.getElementById('explanation-box').classList.add('hidden');
+          // 🔒 Disable Next Question button until answered
+    const nextBtn = document.getElementById('next-btn');
+    if (nextBtn) {
+        nextBtn.disabled = true;
+        nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
     startTimer();
 }
-       function checkAnswer(selectedIndex, selectedBtn) {
+        function checkAnswer(selectedIndex, selectedBtn) {
     if (answered) return;
     answered = true;
     clearInterval(timerInterval);
@@ -610,6 +617,12 @@ if (stats.streak % 5 === 0 && stats.streak > 0) {
     if (nextBtn) {
         nextBtn.disabled = false;
         nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+           // At the bottom of both checkAnswer() AND handleTimeOut():
+const nextBtn = document.getElementById('next-btn');
+if (nextBtn) {
+    nextBtn.disabled = false;
+    nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     }
 }
         function updateStatsUI() {
