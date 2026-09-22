@@ -281,118 +281,117 @@ function playIncorrectSound() {
         }
 
         const questionGenerators = [
-            function genRounding() {
-                const base = getRandomInt(10, 89) * 10000 + getRandomInt(1, 9) * 1000 + getRandomInt(100, 999);
-                const rounded = Math.round(base / 10000) * 10000;
-                return {
-                    domainKey: 'nso', domainName: 'Number Sense', code: 'MA.4.NSO.1.2',
-                    text: `Round <strong>${base.toLocaleString()}</strong> to the nearest ten thousand.`,
-                    options: shuffleArray([
-                        { text: rounded.toLocaleString(), correct: true },
-                        { text: (rounded + 10000).toLocaleString(), correct: false },
-                        { text: Math.max(0, rounded - 10000).toLocaleString(), correct: false },
-                        { text: (Math.round(base / 1000) * 1000).toLocaleString(), correct: false }
-                    ]),
-                    explanation: `Inspect the thousand digit in ${base.toLocaleString()}. Rounding to the nearest ten thousand yields <strong>${rounded.toLocaleString()}</strong>.`
-                };
-            },
-            function genMultiplication() {
-                const a = getRandomInt(15, 65);
-                const b = getRandomInt(12, 45);
-                const correct = a * b;
-                return {
-                    domainKey: 'nso', domainName: 'Number Sense', code: 'MA.4.NSO.2.2',
-                    text: `Find the product: <strong>${a} × ${b}</strong>`,
-                    options: shuffleArray([
-                        { text: `${correct}`, correct: true },
-                        { text: `${correct + 10}`, correct: false },
-                        { text: `${correct - 20}`, correct: false },
-                        { text: `${(a + 2) * b}`, correct: false }
-                    ]),
-                    explanation: `${a} multiplied by ${b} equals <strong>${correct}</strong>.`
-                };
-            },
-            function genPrime() {
-                const primes = [13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
-                const composites = [15, 21, 25, 27, 33, 35, 39, 45, 49];
-                const target = primes[getRandomInt(0, primes.length - 1)];
-                return {
-                    domainKey: 'ar', domainName: 'Algebraic Reasoning', code: 'MA.4.AR.3.1',
-                    text: `Which of the following numbers is a <strong>PRIME number</strong>?`,
-                    options: shuffleArray([
-                        { text: `${target}`, correct: true },
-                        { text: `${composites[0]}`, correct: false },
-                        { text: `${composites[1]}`, correct: false },
-                        { text: `${composites[2]}`, correct: false }
-                    ]),
-                    explanation: `<strong>${target}</strong> is prime because its only factors are 1 and itself.`
-                };
-            },
-            function genFractionAdd() {
-                const n1 = getRandomInt(1, 3), n2 = getRandomInt(1, 3), d = 8;
-                return {
-                    domainKey: 'fr', domainName: 'Fractions & Decimals', code: 'MA.4.FR.2.1',
-                    text: `Solve: <strong>${n1}/${d} + ${n2}/${d}</strong>`,
-                    options: shuffleArray([
-                        { text: `${n1 + n2}/${d}`, correct: true },
-                        { text: `${n1 + n2 + 1}/${d}`, correct: false },
-                        { text: `${n1 + n2}/${d * 2}`, correct: false },
-                        { text: `${n1 + n2 + 2}/${d}`, correct: false }
-                    ]),
-                    explanation: `Add the numerators: ${n1} + ${n2} = ${n1 + n2}. Keep denominator ${d}. Result: <strong>${n1 + n2}/${d}</strong>.`
-                };
-            },
-            function genArea() {
-                const l = getRandomInt(8, 20), w = getRandomInt(4, 12);
-                const area = l * w;
-                return {
-                    domainKey: 'm', domainName: 'Measurement', code: 'MA.4.M.2.1',
-                    text: `A garden is <strong>${l} feet long</strong> and <strong>${w} feet wide</strong>. What is its <strong>AREA</strong>?`,
-                    options: shuffleArray([
-                        { text: `${area} sq ft`, correct: true },
-                        { text: `${2 * (l + w)} sq ft`, correct: false },
-                        { text: `${area + 10} sq ft`, correct: false },
-                        { text: `${l * 2 + w} sq ft`, correct: false }
-                    ]),
-                    explanation: `Area = Length × Width. Calculation: ${l} × ${w} = <strong>${area} sq ft</strong>.`
-                };
-            },
-            function genAngles() {
-                const deg = getRandomInt(15, 165);
-                const isAcute = deg < 90;
-                const isRight = deg === 90;
-                const type = isRight ? 'Right' : (isAcute ? 'Acute' : 'Obtuse');
-                const alt = isAcute ? 'Obtuse' : 'Acute';
-                return {
-                    domainKey: 'gr', domainName: 'Geometric Reasoning', code: 'MA.4.GR.1.1',
-                    text: `An angle measures <strong>${deg}°</strong>. What type of angle is it?`,
-                    options: shuffleArray([
-                        { text: `${type} angle`, correct: true },
-                        { text: `${alt} angle`, correct: false },
-                        { text: `Straight angle`, correct: false },
-                        { text: `Reflex angle`, correct: false }
-                    ]),
-                    explanation: `Angles less than 90° are Acute. Exactly 90° is Right. Greater than 90° is Obtuse. Therefore, ${deg}° is an <strong>${type} angle</strong>.`
-                };
-            },
-            function genDataAnalysis() {
-                const val1 = getRandomInt(2, 5);
-                const val2 = getRandomInt(6, 10);
-                const diff = val2 - val1;
-                return {
-                    domainKey: 'dp', domainName: 'Data Analysis', code: 'MA.4.DP.1.1',
-                    text: `Group A collected <strong>${val1} lbs</strong> of plastic and Group B collected <strong>${val2} lbs</strong>. How many more pounds did Group B collect than Group A?`,
-                    options: shuffleArray([
-                        { text: `${diff} lbs`, correct: true },
-                        { text: `${diff + 2} lbs`, correct: false },
-                        { text: `${val1 + val2} lbs`, correct: false },
-                        { text: `${Math.max(1, diff - 1)} lbs`, correct: false }
-                    ]),
-                    explanation: `Subtract Group A from Group B: ${val2} - ${val1} = <strong>${diff} lbs</strong>.`
-                };
-            }
-        ];
+  // 1. Pre-Algebra: Solving for X in 2-step equations
+  function generateAlgebra() {
+    const x = Math.floor(Math.random() * 12) + 2;
+    const a = Math.floor(Math.random() * 8) + 2;
+    const b = Math.floor(Math.random() * 20) + 5;
+    const total = a * x + b;
+    
+    return {
+      domainKey: 'ar',
+      question: `Solve for x: <br><strong class="text-xl text-teal-800">${a}x + ${b} = ${total}</strong>`,
+      options: [
+        { text: `x = ${x}`, correct: true },
+        { text: `x = ${x + 2}`, correct: false },
+        { text: `x = ${Math.max(1, x - 1)}`, correct: false },
+        { text: `x = ${a + b}`, correct: false }
+      ],
+      explanation: `1. Subtract ${b} from both sides: ${a}x = ${total - b}<br>2. Divide both sides by ${a}: x = ${x}`
+    };
+  },
 
+  // 2. Order of Operations (PEMDAS) with parentheses & exponents
+  function generatePEMDAS() {
+    const a = Math.floor(Math.random() * 5) + 2;
+    const b = Math.floor(Math.random() * 6) + 3;
+    const c = Math.floor(Math.random() * 4) + 2;
+    const mult = Math.floor(Math.random() * 3) + 2;
+    
+    // Expression: a^2 + (b - c) * mult
+    const part1 = Math.pow(a, 2);
+    const part2 = b - c;
+    const correctAns = part1 + (part2 * mult);
+    
+    return {
+      domainKey: 'nso',
+      question: `Evaluate the expression:<br><strong class="text-xl text-teal-800">${a}² + (${b} - ${c}) × ${mult}</strong>`,
+      options: [
+        { text: `${correctAns}`, correct: true },
+        { text: `${part1 + part2 * mult + 4}`, correct: false },
+        { text: `${(part1 + part2) * mult}`, correct: false }, // Common mistake: adding before multiplying
+        { text: `${a * 2 + part2 * mult}`, correct: false }
+      ],
+      explanation: `1. Parentheses first: (${b} - ${c}) = ${part2}<br>2. Exponent: ${a}² = ${part1}<br>3. Multiply: ${part2} × ${mult} = ${part2 * mult}<br>4. Add: ${part1} + ${part2 * mult} = ${correctAns}`
+    };
+  },
+
+  // 3. Multi-Step Geometry: Working backwards from Area/Perimeter
+  function generateGeometryReverse() {
+    const width = Math.floor(Math.random() * 10) + 4;
+    const height = Math.floor(Math.random() * 8) + 3;
+    const area = width * height;
+    const perimeter = 2 * (width + height);
+
+    return {
+      domainKey: 'gr',
+      question: `A rectangle has an area of <strong>${area} sq cm</strong> and a height of <strong>${height} cm</strong>. What is its <strong>perimeter</strong>?`,
+      options: [
+        { text: `${perimeter} cm`, correct: true },
+        { text: `${width} cm`, correct: false },
+        { text: `${width + height} cm`, correct: false },
+        { text: `${perimeter + 6} cm`, correct: false }
+      ],
+      explanation: `1. Find missing width: Area ÷ Height = ${area} ÷ ${height} = ${width} cm.<br>2. Calculate perimeter: 2 × (${width} + ${height}) = ${perimeter} cm.`
+    };
+  },
+
+  // 4. Fractions & Decimals: Multiplying Mixed Numbers
+  function generateFractionMult() {
+    const num1 = Math.floor(Math.random() * 5) + 1;
+    const num2 = Math.floor(Math.random() * 5) + 1;
+    const den = 4;
+    
+    // (1 + num1/4) * 2 = 2 + num1/2
+    const resultNum = 4 + num1;
+    const product = (resultNum * 2) / den;
+
+    return {
+      domainKey: 'fr',
+      question: `Multiply: <strong class="text-xl text-teal-800">1 ${num1}/4 × 2</strong>`,
+      options: [
+        { text: `${product}`, correct: true },
+        { text: `${product + 1.5}`, correct: false },
+        { text: `${1 + (num1/4)*2}`, correct: false },
+        { text: `${product - 0.5}`, correct: false }
+      ],
+      explanation: `Convert 1 ${num1}/4 to an improper fraction: ${resultNum}/4.<br>Multiply by 2: (${resultNum} × 2) / 4 = ${resultNum * 2}/4 = ${product}.`
+    };
+  },
+
+  // 5. Logic & Data: Rates / Unit Price comparisons
+  function generateUnitRate() {
+    const pack1Qty = 4;
+    const pack1Price = Math.floor(Math.random() * 4) * 4 + 12; // e.g. 12, 16, 20
+    const unit1 = pack1Price / pack1Qty;
+    
+    const unit2 = unit1 - 1; // Pack 2 is cheaper per item
+    const pack2Qty = 6;
+    const pack2Price = unit2 * pack2Qty;
+
+    return {
+      domainKey: 'dp',
+      question: `Store A sells <strong>${pack1Qty} notebooks for $${pack1Price}</strong>. Store B sells <strong>${pack2Qty} notebooks for $${pack2Price}</strong>. Which store is cheaper per notebook, and by how much?`,
+      options: [
+        { text: `Store B, by $1.00 cheaper per item`, correct: true },
+        { text: `Store A, by $1.00 cheaper per item`, correct: false },
+        { text: `Both stores cost the same`, correct: false },
+        { text: `Store B, by $2.00 cheaper per item`, correct: false }
+      ],
+      explanation: `Store A unit price: $${pack1Price} ÷ ${pack1Qty} = $${unit1}/item.<br>Store B unit price: $${pack2Price} ÷ ${pack2Qty} = $${unit2}/item.<br>Store B is cheaper by $${unit1 - unit2}.00 per notebook.`
+    };
+  }
+];
         function startTimer() {
             clearInterval(timerInterval);
             const timerSelect = document.getElementById('timer-select');
