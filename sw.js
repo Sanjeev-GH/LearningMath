@@ -1,4 +1,4 @@
-const CACHE_NAME = 'math-hub-v1';
+const CACHE_NAME = 'math-hub-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
