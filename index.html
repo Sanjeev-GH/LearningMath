@@ -256,6 +256,32 @@ function playIncorrectSound() {
     osc.start(now);
     osc.stop(now + 0.3);
 }
+        function playCheerSound() {
+    initAudio();
+    const now = audioCtx.currentTime;
+
+    // Triumphant note progression: C5 -> E5 -> G5 -> C6
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    const startTimes = [0, 0.1, 0.2, 0.35];
+    const durations = [0.1, 0.1, 0.15, 0.6];
+
+    notes.forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'triangle'; // Gives a warm, trumpet-like tone
+        osc.frequency.setValueAtTime(freq, now + startTimes[i]);
+
+        gain.gain.setValueAtTime(0.2, now + startTimes[i]);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + startTimes[i] + durations[i]);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now + startTimes[i]);
+        osc.stop(now + startTimes[i] + durations[i]);
+    });
+}
         let currentQuestion = null;
         let answered = false;
         let timerInterval = null;
@@ -543,14 +569,16 @@ function playIncorrectSound() {
         stats.streak++;
         if (stats.streak > stats.bestStreak) stats.bestStreak = stats.streak;
 
-        // Trigger Confetti every 5 streak milestone (5, 10, 15...)
-        if (stats.streak % 5 === 0 && stats.streak > 0) {
-            confetti({
-                particleCount: 120,
-                spread: 80,
-                origin: { y: 0.6 }
-            });
-        }
+       // Trigger Confetti and Fanfare every 5 streak milestone (5, 10, 15...)
+if (stats.streak % 5 === 0 && stats.streak > 0) {
+    playCheerSound(); // <-- Plays cheer sound here
+    
+    confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 }
+    });
+}
 
         selectedBtn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
         expBox.className = 'p-5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-900 text-sm mb-6';
